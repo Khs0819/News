@@ -1,0 +1,410 @@
+
+To Create New Project:
+    1- composer create-project laravel/laravel projectName
+    2- laravel new projectName
+
+-----------------------------------------------------------------------------------------------------------
+
+1- To run Project:
+    php artisan serve
+
+2- To connect DataBase with laravel:
+    1- AppServiceProvider
+    use Illuminate\Support\Facades\Schema;
+    use Illuminate\Support\ServiceProvider;
+
+                =>Schema::defaultStringLength(191);
+                =>Paginator::useBootstrap();
+
+    2- php MyAdmin
+
+                => create DataBase (name - utf8 uncicode-ci)
+
+    3- .env
+                =>Port 3308/3306
+                =>DataBase name
+
+    4- php artisan migrate
+
+-----------------------------------------------------------------------------------------------------------
+
+1- To Create New Migration (Table)
+    => php artisan make:migration create_admins_table
+
+2- To Alter Exist Migration (Table)
+    => php artisan make:migration add_test_to_admins_table
+
+3- Example Table:
+
+            $table->string('name');
+            $table->string('email')->unique();
+            $table->string('age')->nullable();
+            $table->string('price')->default(0);
+            $table->enum('gender',['male','female'])->default('male');
+
+-----------------------------------------------------------------------------------------------------------
+
+Foreign Key:
+
+    =>( 1 - many )=> Fk from one to many
+    =>( many - many )=> 2 Fk from one in the middle table
+    =>( 1 - 1 )=> Fk from part to whole
+
+-----------------------------------------------------------------------------------------------------------
+
+Enable you to change a column name or delete a column in migration
+
+    1- composer require doctrine/dbal
+    2- php artisan make:migration add_age_to_admins_table (migration on table to make Alter)
+    3-
+        $table->dropColumn('age');
+        $table->renameColumn('email','newEmail');
+        $table->string('column',50)->nullable();
+        $table->index($columns, 'new_index');
+
+    4- php artisan migrate
+
+-----------------------------------------------------------------------------------------------------------
+
+Types of migrate
+
+    ->php artisan migrate
+    ->php artisan migrate:status
+    ->php artisan migrate:rollback(rollback on the last migrate done)
+    ->php artisan migrate:rollback --step=2
+    ->php artisan migrate:reset (execute to down function => rollback of all migrations)
+    ->php artisan migrate:refresh (execute to down function then up function)
+    ->php artisan migrate:fresh (drop all with SQL Query then execute to up function)
+
+-----------------------------------------------------------------------------------------------------------
+
+To make new Model
+
+    ->php artisan make:model Category
+    -> For each table it should have Migration,Model,Controller,(factory , seeder)
+    -> when i need to make any process on data i have to use model
+
+-----------------------------------------------------------------------------------------------------------
+
+Edit on Table Basic information in Model
+
+    // Table Name->    protected $table = 'category';
+    // Primary Key Name->    protected $primaryKey = 'category_id';
+    // Primary Key Type->    protected $keyType = 'int';
+    // Primary Key Incrementing->    public $incrementing = true;
+
+-----------------------------------------------------------------------------------------------------------
+
+In Model:
+
+        //This is Enough if i Commit with laravel naming pattern( _id نفس اسم الجدول مفرد متبوع ب )
+        // return $this->hasMany(Subcategory::class);
+
+        //if i don't Commit with laravel naming pattern (,FK name ,PK in the table)
+           return $this->hasMany(Subcategory::class,'category_id','id');
+
+-----------------------------------------------------------------------------------------------------------
+
+In Controller:
+
+    1-To create Controller
+        php artisan make:controller CategoryController -r
+
+    2-Types of controller:
+        1-Empty Controller
+        2-Resources Controller
+
+    3-Types of Functions in resource controller:
+        1-index => List data in table(model) -> get
+        2-create => Display view to insert data -> get
+        3-store => store data -> post
+        4-show => List data on spcified data-> get
+        5-edit => Display view for spcified data -> get
+        6-update => Update spcified data -> put
+        7-destroy => Delete spcified data ->delete
+
+-----------------------------------------------------------------------------------------------------------
+
+ Type of Functions:
+        1- Internal route => clousure Function
+        2- Internal controller => controller Function
+
+-----------------------------------------------------------------------------------------------------------
+
+MVC:
+
+User with View ==request(route method)==> controller function => model(SQL Query) => controller function=> view
+
+-----------------------------------------------------------------------------------------------------------
+
+In route resource
+
+    ->samary 7 routes
+    ->Don't need to name() routes
+
+-----------------------------------------------------------------------------------------------------------
+
+Types of Dealing with DataBase:
+    1-SQL native
+    2-DB Builder
+    3-Eloquent
+
+-----------------------------------------------------------------------------------------------------------
+
+get() Returns Array of Objects |  Vs  | first() Returns an object
+    Should use foreach                   use as Object
+
+-----------------------------------------------------------------------------------------------------------
+
+In Delete values the id will continue from last one put with
+
+Model::truncate(); it will delete all data in table and start count from begin
+-----------------------------------------------------------------------------------------------------------
+
+(controller model binding)        |  vs |      (controller attribute binding)
+when create controller with model |     |      when create controller separated on model
+in the same command.              |     |      in separate command.
+-----------------------------------------------------------------------------------------------------------
+
+Execute seeder command:
+php artisan db:seed --class=FakeSeeder
+
+-----------------------------------------------------------------------------------------------------------
+
+SoftDelete => Done when work on Eloquent because it depends on Model.
+
+Cascade On delete:
+
+1-migration => cascadeOnDelete();
+2- model =>    protected static function boot(){
+                parent::boot();
+
+                static::deleting(function ($country) {
+                $country->cities()->delete();
+                    });
+                }
+-----------------------------------------------------------------------------------------------------------
+
+1-    Pagination
+
+    1-  - $author = Author::with('user')->withCount('articles')->orderBy('id' , 'desc')->simplePaginate(4);
+
+        -   add links in Index.blade.php
+                    {{ $author->links() }}
+        -  add bootstrap in appServiceProived
+                Paginator::useBootstrap();
+
+
+<a href="{{ route('route.name') }}" class="btn btn-info"> Return To Index </a>
+
+<div class="card-header">
+   <a href="{{ route('specialities.create') }}" class="btn btn-primary"> Add new Speciality </a>
+<div class="card-tools">
+
+
+2-    Add Image
+
+ 1-   php artisan storage:link
+
+ 2- // Form Image
+ <div class="form-group col-md-6">
+      <label for="image">Image</label>
+      <input type="file" name="image" class="form-control" id="image"
+         placeholder="Enter Image">
+</div>
+
+ 3-   //   In Create store Function
+    function performStore() {
+
+let formData = new FormData();
+    formData.append('author_id',document.getElementById('author_id').value);
+    formData.append('title',document.getElementById('title').value);
+    formData.append('image',document.getElementById('image').files[0]);
+    formData.append('short_description',document.getElementById('short_description').value);
+    formData.append('full_description',document.getElementById('full_description').value);
+
+store('/cms/admin/articles',formData);
+
+}
+
+ 4-   // function store
+ 1-   $validator = Validator($request->all(), [
+            'image'=>"required|image|max:2048|mimes:png,jpg,jpeg,pdf",
+        ]);
+
+
+ 2-   $image = $request->file('image');;
+        $imageName = time() . 'image.' . $image->getClientOriginalExtension();
+        $image->move('images/admin', $imageName);
+        $admin->image = $imageName;
+
+ 3-   In Index
+    <td>
+        <img class="img-circle img-bordered-sm" src="{{asset('storage/images/'.$articles->image)}}" width="50" height="50" alt="User Image">
+    </td>
+
+
+3   // Add Date
+
+// Date Form
+
+      <div class="form-group col-md-4">
+                    <label for="dateOfBirth">Birth Date</label>
+                    <input id="dateOfBirth" type="date"  name="dateOfBirth" class="form-control"
+                        placeholder="Enter birth date">
+                </div>
+
+// CSS
+<link rel="stylesheet" href="{{ asset('cms/bootstrap-datepicker/css/bootstrap-datepicker.min.css') }}">
+
+// JS
+<script src="{{ asset('cms/bootstrap-datepicker/js/bootstrap-datepicker.min.js') }}"></script>
+
+
+
+4-  Send Email
+
+1- .env
+
+
+MAIL_DRIVER=smtp
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USERNAME=alyazorytamer@gmail.com
+MAIL_PASSWORD=tameryumna2020!
+MAIL_ENCRYPTION=tls
+MAIL_FROM_ADDRESS=alyazorytamer@gmail.com
+MAIL_FROM_NAME="${APP_NAME}"
+
+
+2- create mail
+php artisan make:mail SendMail
+          public function build()
+    {
+    return $this->from('alyazorytamer@gmail.com')
+        ->subject('Mail from Laravel 8')
+                    ->view('mails.sendEmail');
+    }
+
+
+3- Create Blade View
+1- make folder emails
+2- make view sendEmail
+
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Laravel Course</title>
+</head>
+<body>
+    {{-- <h1>{{ $details['title'] }}</h1>
+    <p>{{ $details['body'] }}</p> --}}
+    <h1>This is test mail from Tutsmake.com</h1>
+    <p>Laravel 8 send email example</p>
+    <p>Thank you</p>
+</body>
+</html>
+
+
+
+4- Add Controller
+    php artisan make:controller SendEmailController
+        Add Function in Controller
+
+          public function index()
+          {
+      Mail::to("alyazorytamer@gmail.com")->send(new SendMail());
+    }
+
+5- Add Route
+        Route::get('send-email', [SendEmailController::class, 'index']);
+
+
+//
+
+relation tables
+
+1- make index functions with parameter $id
+
+    public function indexItems($id)
+    {
+        //
+        $item = Item::where('invoice_id', $id)->orderBy('created_at', 'desc')->paginate(5);
+        return response()->view('dashboard.items.create', compact('item','id'));
+    }
+
+2- make create functions with Parameter $id
+
+
+    public function createItems($id)
+    {
+        //
+        return response()->view('dashboard.items.create', compact('id'));
+    }
+
+3- write route
+
+   Route::get('/create/articles/{id}', [ArticleController::class, 'createArticle'])->name('createArticle');
+    Route::get('/index/articles/{id}', [ArticleController::class, 'indexArticle'])->name('indexArticle');
+
+3- input hidden id in create blade
+          <input type="text" name="category_id" id="category_id" value="{{$id}}"
+                    class="form-control form-control-solid" hidden/>
+
+4- PerformStore
+        category_id: document.getElementById('category_id').value,
+
+5- column count in index blade
+
+  <td><a href="{{route('indexArticle',['id'=>$category->id])}}"
+                        class="btn btn-info">({{$category->articles_count}})
+                        article/s</a> </td>
+
+
+6- button  create in top of index blade
+
+
+
+1- data-*
+
+
+<!DOCTYPE html>
+<html>
+<head>
+	<script>
+		function showDetails(book) {
+			var bookauthor = book.getAttribute("data-book-author");
+			alert(book.innerHTML + " is written by "
+									+ bookauthor + ".");
+		}
+	</script>
+</head>
+
+<body>
+	<h1>Books</h1>
+
+
+<p>Click on the book name to know author's name :</p>
+
+
+
+	<ul>
+		<li onclick="showDetails(this)" id="gitanjali"
+				data-book-author="Rabindra Nath Tagore">
+			Gitanjali
+		</li>
+
+		<li onclick="showDetails(this)" id="conquest_of_self"
+				data-book-author="Mahatma Gandhi">
+			Conquest of Self
+		</li>
+
+		<li onclick="showDetails(this)" id="broken_wings"
+				data-book-author="Sarojini Naidu">
+			Broken Wings
+		</li>
+	</ul>
+</body>
+</html>
+
